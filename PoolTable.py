@@ -31,7 +31,40 @@ def Test():
     
     contours = GetContours(hsv, lower_color, upper_color,17)
         
-    BallData = FindTheBalls(warp, contours)    
+    BallData = FindTheBalls(warp, contours)
+    print lower_color
+    CueBall(BallData)    
+    
+def CueBall(BallData):    
+    
+    data = BallData[1][2]
+
+
+    #this mask does not reflect the boundary between data and nodata.
+    mask = cv2.inRange(data, (0,0,10), (180,255,255))
+       
+#    cv2.imshow('result1',mask)
+#    cv2.imshow('result',data)
+#
+#    cv2.waitKey(0)
+#    cv2.destroyAllWindows()
+
+    
+    hist = cv2.calcHist([data], [0], mask, [180], [0, 180])
+    
+    plt.plot(hist)
+    plt.show()
+    
+    hist = cv2.calcHist([data], [1], mask, [256], [0, 256])
+    
+    plt.plot(hist)
+    plt.show()
+    
+    hist = cv2.calcHist([data], [2], mask, [256], [0, 256])
+    
+    plt.plot(hist)
+    plt.show()
+
 
 def LoadImage(filename):
     """
