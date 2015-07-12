@@ -9,6 +9,7 @@ Python code to identify pool balls on a table from screenshots of matches. Curre
 * Identify balls by their color
 * Return the centroid of each ball
 * Plot the balls on a table layout
+* Refactor the table bed and ball ID code to remove overlap
 
 
 
