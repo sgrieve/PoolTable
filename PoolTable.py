@@ -2,7 +2,7 @@
 """
 Created on Sun Jul 12 21:32:26 2015
 
-@author: Stuart
+@author: Stuart Grieve
 """
 
 import cv2
@@ -10,9 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import Indexer
 
-def Go():
+def Test():
     
-    img = LoadImage('pool_crop.png')
+    img = LoadImage('img/pool_crop.png')
     
     hsv = ToHSV(img)    
     
@@ -33,7 +33,6 @@ def LoadImage(filename):
     """
     Loads an image file
     """
-
     #img is loaded in bgr colorspace
     return cv2.imread(filename)
 
@@ -41,12 +40,14 @@ def ToHSV(img):
     """
     Convert an image from BGR to HSV colorspace
     """
-    
-    #convert img to hsv
     return cv2.cvtColor(img.copy(), cv2.COLOR_BGR2HSV)
     
 
 def GetClothColor(hsv,search_width=45):
+    """
+    Find the most common HSV values in the image.
+    In a well lit image, this will be the cloth
+    """
 
     hist = cv2.calcHist([hsv], [1], None, [180], [0, 180])
     h_max = Indexer.get_index_of_max(hist)[0]
@@ -65,6 +66,9 @@ def GetClothColor(hsv,search_width=45):
 
 
 def MaskTableBed(img, hsv, lower_color, upper_color,filter_radius=7):
+    """
+    Mask out the table bed, assuming that it will be the biggest contour.
+    """
             
     # Threshold the HSV image to get only cloth colors
     mask = cv2.inRange(hsv, lower_color, upper_color)
@@ -93,6 +97,9 @@ def distbetween(x1,y1,x2,y2):
     return np.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))
 
 def Get_UL_Coord(contour,pad=10):
+    """
+    Get the upper left coordinate of the contour.
+    """
     dists = []
     for c in contour:
         dists.append(distbetween(c[0][0],c[0][1],0,0))
@@ -100,6 +107,9 @@ def Get_UL_Coord(contour,pad=10):
     return (contour[Indexer.get_index_of_min(dists)[0]][0][0]-pad,contour[Indexer.get_index_of_min(dists)[0]][0][1]-pad)
     
 def Get_UR_Coord(contour,imgXmax, pad=10):
+    """
+    Get the upper right coordinate of the contour.
+    """
     dists = []
     for c in contour:
         dists.append(distbetween(c[0][0],c[0][1],imgXmax,0))
@@ -107,19 +117,24 @@ def Get_UR_Coord(contour,imgXmax, pad=10):
     return (contour[Indexer.get_index_of_min(dists)[0]][0][0]+pad,contour[Indexer.get_index_of_min(dists)[0]][0][1]-pad)
 
 def Get_LL_Coord(contour,imgYmax, pad=10):
+    """
+    Get the lower left coordinate of the contour.
+    """
     dists = []
     for c in contour:
         dists.append(distbetween(c[0][0],c[0][1],0,imgYmax))
 
     return (contour[Indexer.get_index_of_min(dists)[0]][0][0]-pad,contour[Indexer.get_index_of_min(dists)[0]][0][1]+pad)
     
-def Get_LR_Coord(contour,imgXmax,imgYmax, pad=10):
+def Get_LR_Coord(contour,imgXmax,imgYmax, pad=10):    
+    """
+    Get the lower right coordinate of the contour.
+    """
     dists = []
     for c in contour:
         dists.append(distbetween(c[0][0],c[0][1],imgXmax,imgYmax))
 
     return (contour[Indexer.get_index_of_min(dists)[0]][0][0]+pad,contour[Indexer.get_index_of_min(dists)[0]][0][1]+pad)
-
 
 def TransformToOverhead(img,contour):
     """
@@ -169,6 +184,11 @@ def TransformToOverhead(img,contour):
     return warp    
 
 def FindTheBalls(img, hsv, lower_color, upper_color,filter_radius=17,similarity_threshold=5):
+    """
+    Find and circle all of the balls on the table.
+    
+    Currently struggles with balls on the rail. Not yet tested on clusters.
+    """
     
     # Threshold the HSV image to get only cloth colors
     mask = cv2.inRange(hsv, lower_color, upper_color)
@@ -211,6 +231,6 @@ def FindTheBalls(img, hsv, lower_color, upper_color,filter_radius=17,similarity_
 
     plt.show()
     
-Go()
+Test()
 
 
