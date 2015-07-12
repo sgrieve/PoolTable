@@ -18,16 +18,20 @@ def Test():
     
     lower_color, upper_color = GetClothColor(hsv)
     
-    contour = MaskTableBed(img, hsv, lower_color, upper_color)
+    contours = GetContours(hsv, lower_color, upper_color,7)
     
-    warp = TransformToOverhead(img,contour)
+    TableContour = MaskTableBed(contours)
+    
+    warp = TransformToOverhead(img,TableContour)
     
     #Now the table is cropped and warped, lets find the balls
     hsv = ToHSV(warp)
     
-    lower_color, upper_color = GetClothColor(hsv)
+    lower_color, upper_color = GetClothColor(hsv)    
     
-    FindTheBalls(warp, hsv, lower_color, upper_color)
+    contours = GetContours(hsv, lower_color, upper_color,17)
+        
+    FindTheBalls(warp, contours)
 
 def LoadImage(filename):
     """
@@ -65,21 +69,11 @@ def GetClothColor(hsv,search_width=45):
     return lower_color, upper_color
 
 
-def MaskTableBed(img, hsv, lower_color, upper_color,filter_radius=7):
+def MaskTableBed(contours):
     """
     Mask out the table bed, assuming that it will be the biggest contour.
     """
             
-    # Threshold the HSV image to get only cloth colors
-    mask = cv2.inRange(hsv, lower_color, upper_color)
-    
-    #use a median filter to get rid of speckle noise
-    median = cv2.medianBlur(mask,filter_radius)
-    
-    #get the contours of the filtered mask
-    #this modifies median in place!
-    _, contours, _ = cv2.findContours(median,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
     #The largest area should be the table bed    
     areas = []    
     for c in contours:
@@ -183,11 +177,9 @@ def TransformToOverhead(img,contour):
     
     return warp    
 
-def FindTheBalls(img, hsv, lower_color, upper_color,filter_radius=17,similarity_threshold=5):
+def GetContours(hsv, lower_color, upper_color,filter_radius):
     """
-    Find and circle all of the balls on the table.
-    
-    Currently struggles with balls on the rail. Not yet tested on clusters.
+    Returns the contours generated from the given color range
     """
     
     # Threshold the HSV image to get only cloth colors
@@ -199,6 +191,15 @@ def FindTheBalls(img, hsv, lower_color, upper_color,filter_radius=17,similarity_
     #get the contours of the filtered mask
     #this modifies median in place!
     _, contours, _ = cv2.findContours(median,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+    return contours
+
+def FindTheBalls(img, contours, similarity_threshold=5):
+    """
+    Find and circle all of the balls on the table.
+    
+    Currently struggles with balls on the rail. Not yet tested on clusters.
+    """
 
     #compare the difference in area of a min bounding circle and the cotour area
     diffs = []
@@ -230,6 +231,8 @@ def FindTheBalls(img, hsv, lower_color, upper_color,filter_radius=17,similarity_
     plt.imshow(img)
 
     plt.show()
+
+
     
 Test()
 
