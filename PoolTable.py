@@ -31,7 +31,7 @@ def Test():
     
     contours = GetContours(hsv, lower_color, upper_color,17)
         
-    centers = FindTheBalls(warp, contours)
+    BallData = FindTheBalls(warp, contours)    
 
 def LoadImage(filename):
     """
@@ -199,7 +199,13 @@ def FindTheBalls(img, contours, similarity_threshold=5):
     Find and circle all of the balls on the table.
     
     Currently struggles with balls on the rail. Not yet tested on clusters.
+    
+    Returns a three-tuple containing a tuple of x,y coords, a radius and the masked
+    out area of the image. Needs to be made into a ball object.
     """
+
+    #dimensions of image
+    height,width, channels = img.shape
 
     #compare the difference in area of a min bounding circle and the cotour area
     diffs = []
@@ -220,7 +226,8 @@ def FindTheBalls(img, contours, similarity_threshold=5):
     
     #list of center coords as tuples
     centers = []    
-    
+    radii = []
+    masks = []
     for i,d in zip(indexes,diffs):
         #if the contour is a similar shape to the circle it is likely to be a ball.
         if (d < diffs[0] * similarity_threshold):
@@ -228,17 +235,18 @@ def FindTheBalls(img, contours, similarity_threshold=5):
         
             center = (int(x),int(y))
             radius = int(radius)
-            cv2.circle(img,center,radius,(0,0,255),2)
+            #remove .copy() to display a circle round each ball
+            cv2.circle(img.copy(),center,radius,(0,0,255),2)
             centers.append(center)
+            radii.append(radius)
             
-    plt.axis("off")
-    plt.imshow(img)
+            circle_img = np.zeros((height,width), np.uint8)
+            cv2.circle(circle_img,center,radius,1,thickness=-1)
+            masked_data = cv2.bitwise_and(img, img, mask=circle_img)    
+            masks.append(masked_data)
 
-    plt.show()
-
-    return centers
+    
+    return zip(centers,radii,masks)
 
     
 Test()
-
-
