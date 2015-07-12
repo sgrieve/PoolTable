@@ -12,7 +12,7 @@ import Indexer
 
 def Test():
     
-    img = LoadImage('img/pool_crop.png')
+    img = LoadImage('img/pool_crop_2.png')
     
     hsv = ToHSV(img)    
     
@@ -31,7 +31,7 @@ def Test():
     
     contours = GetContours(hsv, lower_color, upper_color,17)
         
-    FindTheBalls(warp, contours)
+    centers = FindTheBalls(warp, contours)
 
 def LoadImage(filename):
     """
@@ -218,6 +218,9 @@ def FindTheBalls(img, contours, similarity_threshold=5):
     diffs = [x[0] for x in sorted_data]
     indexes = [x[1] for x in sorted_data]
     
+    #list of center coords as tuples
+    centers = []    
+    
     for i,d in zip(indexes,diffs):
         #if the contour is a similar shape to the circle it is likely to be a ball.
         if (d < diffs[0] * similarity_threshold):
@@ -226,12 +229,14 @@ def FindTheBalls(img, contours, similarity_threshold=5):
             center = (int(x),int(y))
             radius = int(radius)
             cv2.circle(img,center,radius,(0,0,255),2)
+            centers.append(center)
             
     plt.axis("off")
     plt.imshow(img)
 
     plt.show()
 
+    return centers
 
     
 Test()
